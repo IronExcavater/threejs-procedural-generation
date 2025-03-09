@@ -28,7 +28,7 @@ body {
   max-inline-size: min(25ch, 90vw);
   padding-block: 0.5ch;
   padding-inline: 1ch;
-  background: hsla(0, 0%, 100%, 80%);
+  background: hsla(0, 0%, 100%, 50%);
   border-radius: 3px;
   font-size: large;
   will-change: opacity, transform;

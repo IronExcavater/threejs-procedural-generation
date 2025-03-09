@@ -1,18 +1,12 @@
 import * as THREE from 'three/webgpu';
 import {
     mx_noise_float, cross, float, transformNormalToView, positionLocal, sign, Fn, uniform, vec2, vec3, Loop,
-    varyingProperty, color, step, smoothstep, dot
+    varyingProperty, color, smoothstep, dot
 } from 'three/tsl';
 
 class Terrain {
     constructor(scene) {
-        const material = new THREE.MeshStandardNodeMaterial({
-            metalness: 0,
-            roughness: 0.5,
-            color: this.colorHill,
-        });
-
-        this.size = 10;
+        this.size = 20;
         this.resolution = 1000;
         this.offset = uniform(vec2(0, 0)); // uniform stop shaders from modifying the value
         this.iterations = uniform(3);
@@ -20,8 +14,8 @@ class Terrain {
         this.strength = uniform(12);
         this.normalShift = uniform(0.01);
 
-        this.colorOceanDeep = uniform(color('#253b69'));
-        this.colorOceanSurface = uniform(color('#6e93de'));
+        this.colorOceanFloor = uniform(color('#b2a982'));
+        this.colorOceanSurface = uniform(color('#86a3e0'));
         this.colorBeach = uniform(color('#dccc63'));
         this.colorHill = uniform(color('#58b235'));
         this.colorCliff = uniform(color('#c0ae87'));
@@ -38,6 +32,12 @@ class Terrain {
 
         const varyingNormal = varyingProperty('vec3');
         const varyingPosition = varyingProperty('vec3');
+
+        const terrainMaterial = new THREE.MeshStandardNodeMaterial({
+            metalness: 0,
+            roughness: 0.5,
+            color: this.colorHill,
+        });
 
         const getHeight = Fn(([position]) => {
             const offsetPos = position.add(this.offset).toVar();
@@ -56,7 +56,7 @@ class Terrain {
             return height;
         });
 
-        material.positionNode = Fn(() => {
+        terrainMaterial.positionNode = Fn(() => {
             // Set height for position
             const position = positionLocal.xyz.toVar();
             position.y.addAssign(getHeight(positionLocal.xz));
@@ -83,13 +83,10 @@ class Terrain {
             return position;
         })();
 
-        material.normalNode = transformNormalToView(varyingNormal);
+        terrainMaterial.normalNode = transformNormalToView(varyingNormal);
 
-        material.colorNode = Fn(() => {
-            const finalColor = this.colorOceanDeep.toVar();
-
-            const oceanSurfaceMix = smoothstep(this.oceanHeight.sub(0.5), this.oceanHeight, varyingPosition.y);
-            finalColor.assign(oceanSurfaceMix.mix(finalColor, this.colorOceanSurface));
+        terrainMaterial.colorNode = Fn(() => {
+            const finalColor = this.colorOceanFloor.toVar();
 
             const beachMix = smoothstep(this.oceanHeight, this.oceanHeight.add(this.beachBlend), varyingPosition.y);
             finalColor.assign(beachMix.mix(finalColor, this.colorBeach));
@@ -101,7 +98,7 @@ class Terrain {
             const slopeY = dot(varyingNormal, vec3(0, 1, 0));
             const cliffMix = smoothstep(this.cliffSlope.sub(this.cliffBlend), this.cliffSlope, slopeY).oneMinus();
             // Ensure cliff only appears above beach height
-            cliffMix.mulAssign(step(this.beachHeight.add(this.hillBlend), varyingPosition.y));
+            cliffMix.mulAssign(smoothstep(this.beachHeight, this.beachHeight.add(this.hillBlend), varyingPosition.y));
             finalColor.assign(cliffMix.mix(finalColor, this.colorCliff));
 
             // The peak height changes at different positions with noise
@@ -114,20 +111,42 @@ class Terrain {
 
         const geometry = new THREE.PlaneGeometry(this.size, this.size, this.resolution, this.resolution);
         geometry.rotateX(-Math.PI / 2);
-        geometry.deleteAttribute('uv');
-        geometry.deleteAttribute('normal');
 
-        this.mesh = new THREE.Mesh(geometry, material);
-        this.mesh.receiveShadow = true;
-        this.mesh.castShadow = true;
-        scene.add(this.mesh);
+        this.terrain = new THREE.Mesh(geometry, terrainMaterial);
+        this.terrain.receiveShadow = true;
+        this.terrain.castShadow = true;
+        scene.scene.add(this.terrain);
+
+        const waterMaterial = new THREE.MeshPhysicalMaterial({
+            transmission: 0.9,
+            roughness: 0.4,
+            ior: 2,
+            color: this.colorOceanSurface.value
+        })
+        this.water = new THREE.Mesh(geometry, waterMaterial);
+        this.water.position.y = this.oceanHeight.value;
+        this.water.receiveShadow = true;
+        scene.scene.add(this.water);
+
+        this.speed = new THREE.Vector2(0.1, 0.1);
+        scene.addUpdateListener((deltaTime) => {
+            this.offset.value.x += deltaTime * this.speed.x;
+            this.offset.value.y += deltaTime * this.speed.y;
+        });
     }
 
     updateGeometry() {
-        this.mesh.geometry.dispose();
+        this.terrain.geometry.dispose();
+        this.water.geometry.dispose();
         const geometry = new THREE.PlaneGeometry(this.size, this.size, this.resolution, this.resolution);
         geometry.rotateX(-Math.PI / 2);
-        this.mesh.geometry = geometry;
+        this.terrain.geometry = geometry;
+        this.water.geometry = geometry;
+    }
+
+    updateOcean() {
+        this.water.position.y = this.oceanHeight.value;
+        this.water.material.color = this.colorOceanSurface.value;
     }
 }
 

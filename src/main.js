@@ -12,8 +12,7 @@ if (WebGL.isWebGL2Available()) {
 
 function initScene() {
     const scene = new Scene(0x70c7cc);
-    const terrain = new Terrain(scene.scene);
-
+    const terrain = new Terrain(scene);
     const controller = new Controller(scene, terrain);
     showToast('Project loaded');
 }
