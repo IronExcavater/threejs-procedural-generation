@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+html {
+  font-family: "Inter", sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+.lil-gui {
+  --width: 300px;
+  --font-family: "Inter", sans-serif;
+}
+
+#toast-container {
+  position: fixed;
+  inset-inline: 0;
+  padding-block-start: 5vh;
+  display: grid;
+  justify-items: center;
+  justify-content: center;
+  gap: 1vh;
+  pointer-events: none;
+}
+
+.toast {
+  max-inline-size: min(25ch, 90vw);
+  padding-block: 0.5ch;
+  padding-inline: 1ch;
+  background: hsla(0, 0%, 100%, 80%);
+  border-radius: 3px;
+  font-size: large;
+  will-change: opacity, transform;
+  animation:
+          fade-in .3s ease,
+          slide-in .3s ease,
+          fade-out .3s ease 2.7s;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+
+@keyframes slide-in {
+  from { transform: translateY(10px); }
+}

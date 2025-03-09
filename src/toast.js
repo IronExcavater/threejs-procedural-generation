@@ -1,9 +1,13 @@
-const container = document.querySelector('#toast-container');
-const template = container.querySelector('#toast-template');
+const container = document.createElement('section');
+container.id = 'toast-container';
+document.body.before(container);
+const template = document.createElement('div');
+template.classList.add('toast');
+template.appendChild(document.createElement('span'));
 
-export const showToast = (message) => {
-    const toast = template.content.cloneNode(true).firstElementChild;
-    toast.querySelector('[tpl="toast"]').textContent = message;
+const showToast = (message) => {
+    const toast = template.cloneNode(true);
+    toast.querySelector('span').textContent = message;
     container.appendChild(toast);
 
     setTimeout(() => {
@@ -24,3 +28,5 @@ const flipToast = toast => {
         easing: 'ease-out'
     });
 }
+
+export default showToast;
