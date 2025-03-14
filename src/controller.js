@@ -7,8 +7,8 @@ class Controller {
 
         const lightingGroup = this.gui.addFolder('Lighting');
         lightingGroup.add(scene, 'lightPosition', -0.8, 0.8, 0.01).name('Position').onChange(() => scene.updateLighting());
-        lightingGroup.add(scene.light, 'intensity', 0, 10, 0.5).name('Intensity').onChange(() => scene.updateLighting());
-        lightingGroup.add(scene.light.shadow, 'normalBias', 0, 0.1, 0.001).name('Normal Bias');
+        lightingGroup.add(scene.d_light, 'intensity', 0, 10, 0.5).name('Intensity').onChange(() => scene.updateLighting());
+        lightingGroup.add(scene.d_light.shadow, 'normalBias', 0, 0.1, 0.001).name('Normal Bias');
         lightingGroup.add(scene, 'shadowDistance', 0, 100, 0.001).name('Shadow Distance').onChange(() => scene.updateLighting());
 
         const terrainGroup = this.gui.addFolder('Terrain');

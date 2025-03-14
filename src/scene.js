@@ -9,12 +9,15 @@ class Scene {
         this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera.position.set(0, 5, 5);
 
-        this.light = new THREE.DirectionalLight(0xffffff, 2);
-        this.light.castShadow = true;
-        this.light.shadow.mapSize.set(2048, 2048);
-        this.light.shadow.normalBias = 0.05;
-        this.scene.add(this.light.target);
-        this.scene.add(this.light);
+        this.a_light = new THREE.AmbientLight(0xffffff, 0.5);
+        this.scene.add(this.a_light);
+
+        this.d_light = new THREE.DirectionalLight(0xffffff, 2);
+        this.d_light.castShadow = true;
+        this.d_light.shadow.mapSize.set(2048, 2048);
+        this.d_light.shadow.normalBias = 0.05;
+        this.scene.add(this.d_light.target);
+        this.scene.add(this.d_light);
 
         this.lightOffset = new THREE.Vector3();
         this.lightPosition = 0.4;
@@ -41,8 +44,8 @@ class Scene {
                 listener(clock.getDelta());
             }
 
-            this.light.target.position.copy(this.controls.target);
-            this.light.position.copy(this.controls.target).add(this.lightOffset);
+            this.d_light.target.position.copy(this.controls.target);
+            this.d_light.position.copy(this.controls.target).add(this.lightOffset);
 
             await this.renderer.render(this.scene, this.camera);
         });
@@ -66,11 +69,11 @@ class Scene {
             0
         )
 
-        this.light.shadow.camera.left = -this.shadowDistance;
-        this.light.shadow.camera.right = this.shadowDistance;
-        this.light.shadow.camera.top = this.shadowDistance * 0.5;
-        this.light.shadow.camera.bottom = -this.shadowDistance * 0.5;
-        this.light.shadow.camera.updateProjectionMatrix();
+        this.d_light.shadow.camera.left = -this.shadowDistance;
+        this.d_light.shadow.camera.right = this.shadowDistance;
+        this.d_light.shadow.camera.top = this.shadowDistance * 0.5;
+        this.d_light.shadow.camera.bottom = -this.shadowDistance * 0.5;
+        this.d_light.shadow.camera.updateProjectionMatrix();
     }
 
     addUpdateListener(callback) {
